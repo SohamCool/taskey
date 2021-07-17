@@ -2,14 +2,14 @@
 const taskContainer = document.querySelector(".task__container");
 
 // Global Store
-const globalStore = [];
+let globalStore = [];
 // card 1, card 2, card 3 should store
 
 const newCard = ({id, imageUrl, taskTitle, taskDescription, taskType,}) => `<div class="col-md-6 col-lg-4" id=${id}>
 <div class="card">
     <div class="card-header d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-outline-success rounded-pill"><i class="fas fa-pencil-alt"></i></button>
-        <button type="button" class="btn btn-outline-danger rounded-pill"><i class="fas fa-trash-alt"></i></button>
+        <button type="button" id=${id} class="btn btn-outline-success rounded-pill" onclick="editCard.apply(this, arguments)"><i class="fas fa-pencil-alt" id=${id}></i></button>
+        <button type="button" id=${id} class="btn btn-outline-danger rounded-pill" onclick="deleteCard.apply(this, arguments)"><i class="fas fa-trash-alt" onclick="deleteCard.apply(this, arguments)" id=${id}></i></button>
     </div>
     <div class="card-body">
         <img src=${imageUrl} class="card-img-top" alt="...">
@@ -32,13 +32,15 @@ const loadInitialTaskCards = () => {
     const {cards} = JSON.parse(getInitialData);
 
     // map around the array to generate html card inject it to DOM
-    cards.map
-    ((cardObject)=>{
+    cards.map((cardObject) => {
         const createNewCard = newCard(cardObject);
         taskContainer.insertAdjacentHTML("beforeend", createNewCard);
         globalStore.push(cardObject);
     });
 }
+
+const updateLocalStorage = () => 
+localStorage.setItem("tasky", JSON.stringify({cards: globalStore}));
 
 const saveChanges = () => {
     const taskData = {
@@ -53,8 +55,55 @@ const saveChanges = () => {
     
     taskContainer.insertAdjacentHTML("beforeend", createNewCard);
     globalStore.push(taskData);
-    
-    localStorage.setItem("tasky", JSON.stringify({cards: globalStore}));
+    updateLocalStorage();
     //parent object browser -> Window
     //parent object html -> DOM -> document
+};
+
+const deleteCard = (event) => {
+    //id
+    event = window.event;
+    const targetID = event.target.id;
+    const tagname = event.target.tagName;
+    //search the global store array, remove the object which matches with the id
+
+    globalStore = globalStore.filter((cardObject) => cardObject.id !== targetID); //those card id's are equal to targetID will get removed
+    updateLocalStorage();
+    //access DOM to remove them
+    if(tagname === "BUTTON"){
+        //task-container(for button)
+        return taskContainer.removeChild(
+        event.target.parentNode.parentNode.parentNode // col-lg
+        );
+    }
+    //for icon
+    return taskContainer.removeChild(
+        event.target.parentNode.parentNode.parentNode.parentNode // col-lg
+        );
+   };
+
+   // Edit card
+// contenteditable
+const editCard = (event) => {
+    event = window.event;
+    const targetID = event.target.id;
+    const tagname = event.target.tagName;
+
+    let parentElement;
+
+    if(tagname == "BUTTON") {
+        parentElement = event.target.parentNode.parentNode;
+    } else{
+        parentElement = event.target.parentNode.parentNode.parentNode;
+    }
+    let taskTitle = parentElement.childNodes[3].childNodes[3];
+    let taskDescription = parentElement.childNodes[3].childNodes[5];
+    let taskType = parentElement.childNodes[3].childNodes[7];
+    let submitButton = parentElement.childNodes[5].childNodes[1];
+
+    // serAttribute=->
+    taskTitle.setAttribute("contenteditable", "true");
+    taskDescription.setAttribute("contenteditable", "true");
+    taskType.setAttribute("contenteditable", "true");
+    submitButton.innerHTML = "Save Changes";
 };
