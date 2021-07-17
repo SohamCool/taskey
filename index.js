@@ -18,7 +18,7 @@ const newCard = ({id, imageUrl, taskTitle, taskDescription, taskType,}) => `<div
       <span class="badge bg-primary">${taskType}</span>
     </div>
     <div class="card-footer text-muted">
-        <button type="button" class="btn btn-outline-primary float-end rounded-pill">Open Task</button>
+        <button type="button" id=${id} class="btn btn-outline-primary float-end rounded-pill">Open Task</button>
     </div>
   </div>
 </div>`;
@@ -96,6 +96,7 @@ const editCard = (event) => {
     } else{
         parentElement = event.target.parentNode.parentNode.parentNode;
     }
+
     let taskTitle = parentElement.childNodes[3].childNodes[3];
     let taskDescription = parentElement.childNodes[3].childNodes[5];
     let taskType = parentElement.childNodes[3].childNodes[7];
@@ -105,5 +106,45 @@ const editCard = (event) => {
     taskTitle.setAttribute("contenteditable", "true");
     taskDescription.setAttribute("contenteditable", "true");
     taskType.setAttribute("contenteditable", "true");
+    submitButton.setAttribute("onclick", "saveEditChanges.apply(this, arguments)");
     submitButton.innerHTML = "Save Changes";
+};
+
+const saveEditChanges = (event) => {
+    event = window.event;
+    const targetID = event.target.id;
+    const tagname = event.target.tagName;
+
+    let parentElement;
+
+    if(tagname == "BUTTON") {
+        parentElement = event.target.parentNode.parentNode;
+    } else{
+        parentElement = event.target.parentNode.parentNode.parentNode;
+    }
+
+    let taskTitle = parentElement.childNodes[3].childNodes[3];
+    let taskDescription = parentElement.childNodes[3].childNodes[5];
+    let taskType = parentElement.childNodes[3].childNodes[7];
+    let submitButton = parentElement.childNodes[5].childNodes[1];
+
+    const updatedData = {
+        taskTitle: taskTitle.innerHTML,
+        taskType: taskType.innerHTML,
+        taskDescription: taskDescription.innerHTML,
+    };
+
+    globalStore = globalStore.map((task) => {
+        if (task.id === targetID) {
+            return {
+                id: task.id,
+        imageUrl: task.imageUrl,
+        taskTitle: updatedData.taskTitle,
+        taskType: updatedData.taskType,
+        taskDescription: updatedData.taskDescription,
+            };
+        }
+        return task;//both returns are imp
+    });
+    updateLocalStorage();
 };
